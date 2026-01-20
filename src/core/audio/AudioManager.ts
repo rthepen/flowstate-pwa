@@ -1,6 +1,6 @@
 import type { TimelineSegment } from '../types';
 
-const SILENT_MP3 = 'data:audio/mpeg;base64,SUQzBAAAAAABEVRYVFUAAAAtAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
+const SILENT_WAV = 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABkYXRhAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
 
 export class AudioManager {
     private static instance: AudioManager;
@@ -22,7 +22,7 @@ export class AudioManager {
 
         // --- HTML5 Audio Heartbeat (iOS Fix) ---
         this.htmlAudioElement = new Audio();
-        this.htmlAudioElement.src = SILENT_MP3;
+        this.htmlAudioElement.src = SILENT_WAV;
         this.htmlAudioElement.loop = true;
         this.htmlAudioElement.volume = 0.01; // Tiny volume just in case
         this.htmlAudioElement.setAttribute('playsinline', ''); // Critical for iOS
