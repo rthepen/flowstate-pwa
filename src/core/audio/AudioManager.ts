@@ -47,10 +47,25 @@ export class AudioManager {
         }
 
         // --- HTML5 Audio Heartbeat (iOS Fix) ---
+        // --- HTML5 Audio Heartbeat (iOS Fix) ---
         // Trigger generic HTML5 audio playback on user gesture
         if (this.htmlAudioElement) {
-            this.htmlAudioElement.play().catch(e => {
+            // iOS HACK: Append to DOM to prevent garbage collection
+            document.body.appendChild(this.htmlAudioElement);
+            this.htmlAudioElement.style.position = 'absolute';
+            this.htmlAudioElement.style.opacity = '0.001';
+            this.htmlAudioElement.style.pointerEvents = 'none';
+
+            this.htmlAudioElement.play().then(() => {
+                console.log('❤️ Heartbeat attached to DOM and playing');
+            }).catch(e => {
                 console.warn('⚠️ HTML5 Audio Heartbeat failed:', e);
+            });
+
+            // iOS HACK: Force resume if paused by OS
+            this.htmlAudioElement.addEventListener('pause', () => {
+                console.log('⚠️ Heartbeat paused by OS - Forcing resume');
+                this.htmlAudioElement?.play().catch(e => console.error('Force resume failed', e));
             });
         }
 
