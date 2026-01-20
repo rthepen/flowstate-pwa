@@ -1,6 +1,6 @@
 import type { TimelineSegment } from '../types';
 
-const SILENT_MP3 = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTSVMAAAAPAAADTGF2ZjU4LjIwLjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV//OEAAAAAAAAAAAAAAAAAAAAAAAAMGF1ZGlvL21wZwAAAABIAAAAAAAAAAAKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//OECQAAAASBgAAAAAAAAAAAAAAJAAABAAAAAAAAAAAAAAJAAAAAAAAAAAAAA//OECQAAAAAAAAAAAAAAAAAAAAAJAAABAAAAAAAAAAAAAAJAAAAAAAAAAAAAA//OECQAAAAAAAAAAAAAAAAAAAAAJAAABAAAAAAAAAAAAAAJAAAAAAAAAAAAAA';
+const SILENT_MP3 = 'data:audio/mpeg;base64,SUQzBAAAAAABEVRYVFUAAAAtAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq';
 
 export class AudioManager {
     private static instance: AudioManager;
@@ -87,7 +87,7 @@ export class AudioManager {
                 node.connect(this.audioCtx.destination);
                 node.start(0);
                 this._silentNode = node;
-                console.log('🔇 Slient Background Loop Started');
+                console.log('🔇 Silent Background Loop Started');
             } catch (e) {
                 console.warn('⚠️ Failed to start background silent loop', e);
             }
