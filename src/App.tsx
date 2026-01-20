@@ -39,9 +39,14 @@ function App() {
 
       <div style={{ marginTop: '2rem' }}>
         <h3>Debug Controls</h3>
-        <button onClick={() => AudioManager.getInstance().unlock()}>
-          Force Audio Unlock
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => AudioManager.getInstance().unlock()}>
+            Force Audio Unlock
+          </button>
+          <button onClick={() => AudioManager.getInstance().playTestSound('sound-check')}>
+            🔊 Test MP3 File
+          </button>
+        </div>
       </div>
     </div>
   );

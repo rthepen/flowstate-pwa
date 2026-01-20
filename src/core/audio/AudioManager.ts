@@ -158,54 +158,64 @@ export class AudioManager {
         });
     }
 
-    private playBuffer(assetId: string, time: number): void {
-        const buffer = this.buffers.get(assetId);
+}
 
-        if (!buffer) {
-            console.warn(`⚠️ Audio asset not found: ${assetId} -> Playing Fallback`);
-            this.playOscillatorFallback(time);
-            return;
-        }
+    /**
+     * Public method to manually trigger a sound functionality.
+     * Useful for testing without waiting for the timeline.
+     */
+    public playTestSound(assetId: string): void {
+    this.playBuffer(assetId, this.audioCtx.currentTime);
+}
+
+    private playBuffer(assetId: string, time: number): void {
+    const buffer = this.buffers.get(assetId);
+
+    if(!buffer) {
+        console.warn(`⚠️ Audio asset not found: ${assetId} -> Playing Fallback`);
+        this.playOscillatorFallback(time);
+        return;
+    }
 
         // Create buffer source
         const source = this.audioCtx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(this.audioCtx.destination);
+    source.buffer = buffer;
+    source.connect(this.audioCtx.destination);
 
-        // Schedule
-        source.start(time);
+    // Schedule
+    source.start(time);
 
-        // Track node to allow cancellation
-        this.scheduledNodes.add(source);
-        source.onended = () => {
-            this.scheduledNodes.delete(source);
-            source.disconnect();
-        };
+    // Track node to allow cancellation
+    this.scheduledNodes.add(source);
+    source.onended = () => {
+        this.scheduledNodes.delete(source);
+        source.disconnect();
+    };
 
-        console.log(`⏱️ Scheduled ${assetId} at ${time.toFixed(3)} (contextTime)`);
-    }
+    console.log(`⏱️ Scheduled ${assetId} at ${time.toFixed(3)} (contextTime)`);
+}
 
     private playOscillatorFallback(time: number): void {
-        const osc = this.audioCtx.createOscillator();
-        const gain = this.audioCtx.createGain();
+    const osc = this.audioCtx.createOscillator();
+    const gain = this.audioCtx.createGain();
 
-        osc.type = 'square'; // Distinct from 'sine' so we know it's fallback
-        osc.frequency.value = 880; // High beep
-        gain.gain.value = 0.05;
+    osc.type = 'square'; // Distinct from 'sine' so we know it's fallback
+    osc.frequency.value = 880; // High beep
+    gain.gain.value = 0.05;
 
-        osc.connect(gain);
-        gain.connect(this.audioCtx.destination);
+    osc.connect(gain);
+    gain.connect(this.audioCtx.destination);
 
-        osc.start(time);
-        osc.stop(time + 0.1);
+    osc.start(time);
+    osc.stop(time + 0.1);
 
-        this.scheduledNodes.add(osc);
-        osc.onended = () => {
-            this.scheduledNodes.delete(osc);
-            osc.disconnect();
-            gain.disconnect();
-        };
+    this.scheduledNodes.add(osc);
+    osc.onended = () => {
+        this.scheduledNodes.delete(osc);
+        osc.disconnect();
+        gain.disconnect();
+    };
 
-        console.log(`⚠️ Scheduled FALLBACK at ${time.toFixed(3)}`);
-    }
+    console.log(`⚠️ Scheduled FALLBACK at ${time.toFixed(3)}`);
+}
 }
