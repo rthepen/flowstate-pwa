@@ -1,4 +1,4 @@
-import { TimelineSegment } from '../types';
+import type { TimelineSegment } from '../types';
 
 export class AudioManager {
     private static instance: AudioManager;
