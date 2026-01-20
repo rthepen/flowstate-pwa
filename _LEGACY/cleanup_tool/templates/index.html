@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Database Cleanup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Load FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="top-bar">
+            <h1>Cleanup Tool</h1>
+            <div class="controls">
+                <input type="text" id="searchBar" placeholder="Search workouts...">
+                <select id="materialFilter">
+                    <option value="all">All Materials</option>
+                    <!-- Options populated via JS -->
+                </select>
+                <select id="sortOption">
+                    <option value="name">Sort by Name</option>
+                    <option value="match_asc">Match Score (Low to High)</option>
+                    <option value="match_desc">Match Score (High to Low)</option>
+                </select>
+                <input type="password" id="apiKey" placeholder="YouTube API Key" style="width: 150px;"
+                    title="Enter YouTube API Key">
+                <button id="addWorkoutBtn" class="primary-btn"
+                    style="background: var(--success); font-size: 1.2rem; padding: 0 15px;"
+                    title="Nieuwe Oefening">+</button>
+                <button id="analyzeBtn" class="primary-btn"
+                    style="background: var(--accent); color: white;">Analyzeren</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div id="workoutList" class="workout-list">
+                <!-- Workouts will be injected here -->
+            </div>
+        </div>
+
+        <!-- Video Modal -->
+        <div id="videoModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div id="videoPlayerContainer"></div>
+                <div class="modal-actions">
+                    <input type="text" id="customVideoUrl" placeholder="Enter custom video URL">
+                    <button id="useCustomUrlBtn">Use Custom URL</button>
+                    <button id="confirmSelectionBtn" class="primary-btn">Save Selection</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Workout Modal -->
+        <div id="createModal" class="modal hidden">
+            <div class="modal-content" style="max-width: 500px;">
+                <span class="close-create-modal" style="float:right; cursor:pointer; font-size:24px;">&times;</span>
+                <h2>Nieuwe Oefening</h2>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+                    <input type="text" id="newExerciseName" placeholder="Naam Oefening" class="input-field">
+                    <input type="text" id="newCheckNumber" placeholder="Check Number (optioneel)" class="input-field"
+                        style="display:none;">
+
+                    <select id="newCategory" class="input-field">
+                        <option value="Hele Lichaam">Hele Lichaam</option>
+                        <option value="Bovenlichaam">Bovenlichaam</option>
+                        <option value="Onderlichaam">Onderlichaam</option>
+                        <option value="Buikspieren">Buikspieren</option>
+                        <option value="Cardio">Cardio</option>
+                    </select>
+
+                    <select id="newMaterial" class="input-field">
+                        <option value="" disabled selected>Kies Materiaal...</option>
+                        <!-- Populated by JS -->
+                    </select>
+
+                    <textarea id="newInstructions" placeholder="Instructies..." rows="4" class="input-field"
+                        style="resize:vertical;"></textarea>
+
+                    <button id="saveNewWorkoutBtn" class="primary-btn"
+                        style="background:var(--success); margin-top:10px;">Opslaan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

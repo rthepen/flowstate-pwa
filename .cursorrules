@@ -1,0 +1,24 @@
+# FlowState "Iron Laws"
+
+## Rule 1: Time is God
+- **NEVER** use `setInterval` or `setTimeout` to decrement a workout timer or manage state.
+- **ALWAYS** calculate state based on `(Date.now() - startTime)`.
+- The source of truth is always the difference between the current timestamp and the start timestamp.
+- Use `requestAnimationFrame` for UI updates, but derive the value from the timestamp delta.
+
+## Rule 2: Mobile First
+- All clickable elements must have a minimum height/width of **44px** (touch target size).
+- Use `dvh` (dynamic viewport height) for full-screen elements to handle mobile browser bars correctly.
+- Ensure touch interactions are responsive and obvious.
+
+## Rule 3: Audio Decoupling
+- Audio logic must be **strictly decoupled** from UI rendering.
+- The UI should react to audio state changes, or both should react to the chrono state.
+- Audio playback should not depend on the UI being rendered (background playback considerations).
+- Use the central Broadcast model for audio triggers.
+
+## Rule 4: No Fluff
+- Use **Functional React Components** with Hooks.
+- **Avoid** Class components.
+- Keep components small, focused, and composable.
+- Use Tailwind CSS for styling.
