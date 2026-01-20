@@ -8,7 +8,7 @@ export function initAudioEngine() {
     audioManager.loadAssets({
         'beep-low': 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg',
         'beep-high': 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg', // Duplicate for demo
-        // Add more mapped assets here
+        'sound-check': '/sounds/sound_check.mp3',
     });
 
     // 2. Subscribe to Store Changes (Reset/Seek handling)
