@@ -5,6 +5,7 @@ export class AudioManager {
     private audioCtx: AudioContext;
     private buffers: Map<string, AudioBuffer>;
     private scheduledNodes: Set<AudioScheduledSourceNode>;
+    private scheduledSegmentIds: Set<string>;
     private isUnlocked: boolean = false;
 
     private constructor() {
@@ -13,6 +14,7 @@ export class AudioManager {
         this.audioCtx = new AudioContextClass();
         this.buffers = new Map();
         this.scheduledNodes = new Set();
+        this.scheduledSegmentIds = new Set();
     }
 
     public static getInstance(): AudioManager {
@@ -22,9 +24,6 @@ export class AudioManager {
         return AudioManager.instance;
     }
 
-    /**
-     * Resume the AudioContext. Must be called from a user interaction (click/tap).
-     */
     /**
      * Resume the AudioContext. Must be called from a user interaction (click/tap).
      */
@@ -85,11 +84,7 @@ export class AudioManager {
     public async loadAssets(manifest: Record<string, string>): Promise<void> {
         const promises = Object.entries(manifest).map(async ([id, url]) => {
             try {
-                const response = await fetch(url);
-                const arrayBuffer = await response.arrayBuffer();
-                const audioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
-                this.buffers.set(id, audioBuffer);
-                console.log(`✅ Loaded audio asset: ${id}`);
+                await this.loadSingleAsset(id, url);
             } catch (err) {
                 console.error(`❌ Failed to load asset: ${id}`, err);
             }
@@ -104,8 +99,6 @@ export class AudioManager {
     public get currentTime(): number {
         return this.audioCtx.currentTime;
     }
-
-    private scheduledSegmentIds: Set<string> = new Set();
 
     /**
      * Stop all currently scheduled or playing nodes and clear scheduled tracking
@@ -158,64 +151,62 @@ export class AudioManager {
         });
     }
 
-}
-
     /**
      * Public method to manually trigger a sound functionality.
      * Useful for testing without waiting for the timeline.
      */
     public playTestSound(assetId: string): void {
-    this.playBuffer(assetId, this.audioCtx.currentTime);
-}
+        this.playBuffer(assetId, this.audioCtx.currentTime);
+    }
 
     private playBuffer(assetId: string, time: number): void {
-    const buffer = this.buffers.get(assetId);
+        const buffer = this.buffers.get(assetId);
 
-    if(!buffer) {
-        console.warn(`⚠️ Audio asset not found: ${assetId} -> Playing Fallback`);
-        this.playOscillatorFallback(time);
-        return;
-    }
+        if (!buffer) {
+            console.warn(`⚠️ Audio asset not found: ${assetId} -> Playing Fallback`);
+            this.playOscillatorFallback(time);
+            return;
+        }
 
         // Create buffer source
         const source = this.audioCtx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(this.audioCtx.destination);
+        source.buffer = buffer;
+        source.connect(this.audioCtx.destination);
 
-    // Schedule
-    source.start(time);
+        // Schedule
+        source.start(time);
 
-    // Track node to allow cancellation
-    this.scheduledNodes.add(source);
-    source.onended = () => {
-        this.scheduledNodes.delete(source);
-        source.disconnect();
-    };
+        // Track node to allow cancellation
+        this.scheduledNodes.add(source);
+        source.onended = () => {
+            this.scheduledNodes.delete(source);
+            source.disconnect();
+        };
 
-    console.log(`⏱️ Scheduled ${assetId} at ${time.toFixed(3)} (contextTime)`);
-}
+        console.log(`⏱️ Scheduled ${assetId} at ${time.toFixed(3)} (contextTime)`);
+    }
 
     private playOscillatorFallback(time: number): void {
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
 
-    osc.type = 'square'; // Distinct from 'sine' so we know it's fallback
-    osc.frequency.value = 880; // High beep
-    gain.gain.value = 0.05;
+        osc.type = 'square'; // Distinct from 'sine' so we know it's fallback
+        osc.frequency.value = 880; // High beep
+        gain.gain.value = 0.05;
 
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
 
-    osc.start(time);
-    osc.stop(time + 0.1);
+        osc.start(time);
+        osc.stop(time + 0.1);
 
-    this.scheduledNodes.add(osc);
-    osc.onended = () => {
-        this.scheduledNodes.delete(osc);
-        osc.disconnect();
-        gain.disconnect();
-    };
+        this.scheduledNodes.add(osc);
+        osc.onended = () => {
+            this.scheduledNodes.delete(osc);
+            osc.disconnect();
+            gain.disconnect();
+        };
 
-    console.log(`⚠️ Scheduled FALLBACK at ${time.toFixed(3)}`);
-}
+        console.log(`⚠️ Scheduled FALLBACK at ${time.toFixed(3)}`);
+    }
 }
