@@ -1,5 +1,7 @@
 import type { TimelineSegment } from '../types';
 
+const SILENT_MP3 = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTSVMAAAAPAAADTGF2ZjU4LjIwLjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIADAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV//OEAAAAAAAAAAAAAAAAAAAAAAAAMGF1ZGlvL21wZwAAAABIAAAAAAAAAAAKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//OECQAAAASBgAAAAAAAAAAAAAAJAAABAAAAAAAAAAAAAAJAAAAAAAAAAAAAA//OECQAAAAAAAAAAAAAAAAAAAAAJAAABAAAAAAAAAAAAAAJAAAAAAAAAAAAAA//OECQAAAAAAAAAAAAAAAAAAAAAJAAABAAAAAAAAAAAAAAJAAAAAAAAAAAAAA';
+
 export class AudioManager {
     private static instance: AudioManager;
     private audioCtx: AudioContext;
@@ -8,6 +10,7 @@ export class AudioManager {
     private scheduledSegmentIds: Set<string>;
     private isUnlocked: boolean = false;
     private _silentNode: AudioBufferSourceNode | null = null;
+    private htmlAudioElement: HTMLAudioElement | null = null;
 
     private constructor() {
         // Create context but it starts in 'suspended' state usually
@@ -16,6 +19,13 @@ export class AudioManager {
         this.buffers = new Map();
         this.scheduledNodes = new Set();
         this.scheduledSegmentIds = new Set();
+
+        // --- HTML5 Audio Heartbeat (iOS Fix) ---
+        this.htmlAudioElement = new Audio();
+        this.htmlAudioElement.src = SILENT_MP3;
+        this.htmlAudioElement.loop = true;
+        this.htmlAudioElement.volume = 0.01; // Tiny volume just in case
+        this.htmlAudioElement.setAttribute('playsinline', ''); // Critical for iOS
     }
 
     public static getInstance(): AudioManager {
@@ -34,6 +44,14 @@ export class AudioManager {
         // Always resume the context first
         if (this.audioCtx.state === 'suspended') {
             await this.audioCtx.resume();
+        }
+
+        // --- HTML5 Audio Heartbeat (iOS Fix) ---
+        // Trigger generic HTML5 audio playback on user gesture
+        if (this.htmlAudioElement) {
+            this.htmlAudioElement.play().catch(e => {
+                console.warn('⚠️ HTML5 Audio Heartbeat failed:', e);
+            });
         }
 
         // --- BACKGROUND SURVIVAL STRATEGY ---
