@@ -25,30 +25,56 @@ export class AudioManager {
     /**
      * Resume the AudioContext. Must be called from a user interaction (click/tap).
      */
+    /**
+     * Resume the AudioContext. Must be called from a user interaction (click/tap).
+     */
     public async unlock(): Promise<void> {
-        if (this.isUnlocked && this.audioCtx.state === 'running') return;
-
+        // Always resume the context first
         if (this.audioCtx.state === 'suspended') {
             await this.audioCtx.resume();
         }
 
-        // Create an oscillator to "wake up" the engine with audible feedback
-        // This confirms the user gesture worked
+        // 1. Play Immediate Beep (Oscillator) - GUARANTEED FEEDBACK
+        // This ensures the user hears *something* instantly while we try to load the MP3
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
-
         osc.type = 'sine';
         osc.frequency.value = 440; // A4
-        gain.gain.value = 0.1; // Low volume
-
+        gain.gain.value = 0.1;
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
-
         osc.start(0);
-        osc.stop(this.audioCtx.currentTime + 0.1); // Short beep
+        osc.stop(this.audioCtx.currentTime + 0.1);
 
+        console.log('🔊 Audio Engine Unlocked (Beep)', this.audioCtx.state);
         this.isUnlocked = true;
-        console.log('🔊 Audio Engine Unlocked', this.audioCtx.state);
+
+        // 2. Try to play "Sound Check" (MP3)
+        // If not loaded, try to load it now
+        const soundCheckId = 'sound-check';
+        if (!this.buffers.has(soundCheckId)) {
+            try {
+                // Determine path (vite public folder)
+                await this.loadSingleAsset(soundCheckId, '/sounds/sound_check.mp3');
+            } catch (e) {
+                console.warn('⚠️ Could not load sound_check.mp3, using beep only.');
+            }
+        }
+
+        // If loaded (or just loaded), play it
+        if (this.buffers.has(soundCheckId)) {
+            // Play it slightly after the beep
+            this.playBuffer(soundCheckId, this.audioCtx.currentTime + 0.15);
+        }
+    }
+
+    private async loadSingleAsset(id: string, url: string): Promise<void> {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Fetch failed: ${response.statusText}`);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+        this.buffers.set(id, audioBuffer);
+        console.log(`✅ Loaded audio asset: ${id}`);
     }
 
     /**
