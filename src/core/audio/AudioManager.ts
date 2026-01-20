@@ -7,6 +7,7 @@ export class AudioManager {
     private scheduledNodes: Set<AudioScheduledSourceNode>;
     private scheduledSegmentIds: Set<string>;
     private isUnlocked: boolean = false;
+    private _silentNode: AudioBufferSourceNode | null = null;
 
     private constructor() {
         // Create context but it starts in 'suspended' state usually
@@ -35,7 +36,31 @@ export class AudioManager {
             await this.audioCtx.resume();
         }
 
-        // 1. Play Immediate Beep (Oscillator) - GUARANTEED FEEDBACK
+        // --- BACKGROUND SURVIVAL STRATEGY ---
+        // 1. Init MediaSession to tell OS we are a media player
+        this.initMediaSession();
+
+        // 2. Start a Silent Loop to keep AudioContext processing
+        if (!this._silentNode) {
+            try {
+                const buffer = this.audioCtx.createBuffer(1, this.audioCtx.sampleRate, this.audioCtx.sampleRate);
+                // Fill with silence (it's already 0s by default, but to be sure)
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = 0;
+
+                const node = this.audioCtx.createBufferSource();
+                node.buffer = buffer;
+                node.loop = true;
+                node.connect(this.audioCtx.destination);
+                node.start(0);
+                this._silentNode = node;
+                console.log('🔇 Slient Background Loop Started');
+            } catch (e) {
+                console.warn('⚠️ Failed to start background silent loop', e);
+            }
+        }
+
+        // 3. Play Immediate Beep (Oscillator) - GUARANTEED FEEDBACK
         // This ensures the user hears *something* instantly while we try to load the MP3
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
@@ -50,7 +75,7 @@ export class AudioManager {
         console.log('🔊 Audio Engine Unlocked (Beep)', this.audioCtx.state);
         this.isUnlocked = true;
 
-        // 2. Try to play "Sound Check" (MP3)
+        // 4. Try to play "Sound Check" (MP3)
         // If not loaded, try to load it now
         const soundCheckId = 'sound-check';
         if (!this.buffers.has(soundCheckId)) {
@@ -66,6 +91,36 @@ export class AudioManager {
         if (this.buffers.has(soundCheckId)) {
             // Play it slightly after the beep
             this.playBuffer(soundCheckId, this.audioCtx.currentTime + 0.15);
+        }
+    }
+
+    private initMediaSession() {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: "FlowState Workout",
+                artist: "Ready to train",
+                album: "FlowState PWA",
+                artwork: [
+                    { src: '/vite.svg', sizes: '512x512', type: 'image/svg+xml' }
+                ]
+            });
+
+            const actionHandlers = [
+                ['play', () => console.log('▶️ MediaSession Play')],
+                ['pause', () => console.log('⏸️ MediaSession Pause')],
+                ['stop', () => console.log('⏹️ MediaSession Stop')],
+                ['previoustrack', () => { /* no-op */ }],
+                ['nexttrack', () => { /* no-op */ }]
+            ] as const;
+
+            for (const [action, handler] of actionHandlers) {
+                try {
+                    navigator.mediaSession.setActionHandler(action as any, handler);
+                } catch (error) {
+                    console.warn(`MediaSession action ${action} not supported`);
+                }
+            }
+            console.log("📻 MediaSession Initialized");
         }
     }
 
