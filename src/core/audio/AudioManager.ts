@@ -32,12 +32,20 @@ export class AudioManager {
             await this.audioCtx.resume();
         }
 
-        // Play a silent buffer to fully wake up the audio thread on iOS
-        const buffer = this.audioCtx.createBuffer(1, 1, 22050);
-        const source = this.audioCtx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(this.audioCtx.destination);
-        source.start(0);
+        // Create an oscillator to "wake up" the engine with audible feedback
+        // This confirms the user gesture worked
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.value = 440; // A4
+        gain.gain.value = 0.1; // Low volume
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.start(0);
+        osc.stop(this.audioCtx.currentTime + 0.1); // Short beep
 
         this.isUnlocked = true;
         console.log('🔊 Audio Engine Unlocked', this.audioCtx.state);
@@ -124,8 +132,10 @@ export class AudioManager {
 
     private playBuffer(assetId: string, time: number): void {
         const buffer = this.buffers.get(assetId);
+
         if (!buffer) {
-            console.warn(`⚠️ Audio asset not found: ${assetId}`);
+            console.warn(`⚠️ Audio asset not found: ${assetId} -> Playing Fallback`);
+            this.playOscillatorFallback(time);
             return;
         }
 
@@ -145,5 +155,29 @@ export class AudioManager {
         };
 
         console.log(`⏱️ Scheduled ${assetId} at ${time.toFixed(3)} (contextTime)`);
+    }
+
+    private playOscillatorFallback(time: number): void {
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.type = 'square'; // Distinct from 'sine' so we know it's fallback
+        osc.frequency.value = 880; // High beep
+        gain.gain.value = 0.05;
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.start(time);
+        osc.stop(time + 0.1);
+
+        this.scheduledNodes.add(osc);
+        osc.onended = () => {
+            this.scheduledNodes.delete(osc);
+            osc.disconnect();
+            gain.disconnect();
+        };
+
+        console.log(`⚠️ Scheduled FALLBACK at ${time.toFixed(3)}`);
     }
 }
