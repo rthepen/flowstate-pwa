@@ -29,6 +29,8 @@ export class AudioManager {
      * Resume the AudioContext. Must be called from a user interaction (click/tap).
      */
     public async unlock(): Promise<void> {
+        if (this.isUnlocked) return;
+
         // Always resume the context first
         if (this.audioCtx.state === 'suspended') {
             await this.audioCtx.resume();
