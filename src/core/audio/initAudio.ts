@@ -9,6 +9,7 @@ export function initAudioEngine() {
         'beep-low': 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg',
         'beep-high': 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg', // Duplicate for demo
         'sound-check': '/sounds/sound_check.mp3',
+        'test-wav': '/sounds/soundcheck2.wav',
     });
 
     // 2. Subscribe to Store Changes (Reset/Seek handling)

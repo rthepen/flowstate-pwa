@@ -43,8 +43,8 @@ function App() {
           <button onClick={() => AudioManager.getInstance().unlock()}>
             Force Audio Unlock
           </button>
-          <button onClick={() => AudioManager.getInstance().playTestSound('sound-check')}>
-            🔊 Test MP3 File
+          <button onClick={() => AudioManager.getInstance().playTestSound('test-wav')}>
+            🔊 Test WAV File
           </button>
         </div>
       </div>
