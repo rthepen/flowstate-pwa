@@ -247,6 +247,38 @@ export class AudioManager {
         this.playBuffer(assetId, this.audioCtx.currentTime);
     }
 
+    /**
+     * "The Spotify Method" (iOS Fix):
+     * Hijacks the persistent HTML5 heartbeat element to play a real sound,
+     * then returns to the silent loop when done.
+     * This bypasses Web Audio API suspension on iOS.
+     */
+    public playSystemSound(url: string): void {
+        if (!this.htmlAudioElement) return;
+
+        console.log(`🔊 System Sound Requested: ${url}`);
+
+        // 1. Hijack the heartbeat
+        const player = this.htmlAudioElement;
+
+        // Remove any old listeners to be safe
+        player.onended = null;
+
+        // 2. Load and Play the real sound
+        player.loop = false;
+        player.src = url;
+        player.play().catch(e => console.warn('System sound play failed:', e));
+
+        // 3. Restore Heartbeat when done
+        player.onended = () => {
+            console.log('✅ System Sound Finished -> Restoring Heartbeat');
+            player.src = SILENT_WAV;
+            player.loop = true;
+            player.play().catch(e => console.warn('Heartbeat restore failed:', e));
+            player.onended = null; // Clean up
+        };
+    }
+
     private playBuffer(assetId: string, time: number): void {
         const buffer = this.buffers.get(assetId);
 
